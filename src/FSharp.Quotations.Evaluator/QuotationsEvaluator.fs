@@ -139,6 +139,20 @@ module QuotationEvaluationTypes =
                             "       let bar() = let x = x in <@ x @>\r\n";
 
                         raise <| NotSupportedException message
+                | :? KeyNotFoundException -> 
+                    //let zero = v.Type.GetProperty("Zero", BindingFlags.Public ||| BindingFlags.Static).GetValue(null, null)
+                    //(Expression.Constant zero) |> asExpr
+                    match v.Type.Name with
+                    | "UInt16 "
+                    | "Int16"
+                    | "UInt32 "
+                    | "Int32"
+                    | "UInt64"
+                    | "Int64" 
+                    | "Single" 
+                    | "Double" -> Expression.Constant(Convert.ChangeType(0, v.Type)) |> asExpr
+                    | _ -> failwithf "The symbolic variable %A of type %A is not convertible." v v.Type
+                    
         | DerivedPatterns.AndAlso(x1,x2) -> Expression.AndAlso(ConvExpr env x1, ConvExpr env x2) |> asExpr
         | DerivedPatterns.OrElse(x1,x2)  -> Expression.OrElse(ConvExpr env x1, ConvExpr env x2)  |> asExpr
         | Patterns.Value(x,ty)           -> Expression.Constant(x,ty)                            |> asExpr
