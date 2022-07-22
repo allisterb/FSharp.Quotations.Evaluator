@@ -550,7 +550,14 @@ module QuotationEvaluationTypes =
                         let getVar var =
                             if Some var = letrec
                                 then theFuncObject |> asExpression
-                                else Map.find var env.varEnv
+                                else 
+                                    match Map.tryFind var env.varEnv with
+                                    | Some e -> e
+                                    | _ -> 
+                                        if env.varEnv |> Map.exists(fun k _ -> k.Name = var.Name && k.Type = var.Type) then 
+                                            let key = env.varEnv |> Map.findKey (fun k _ -> k.Name = var.Name && k.Type = var.Type) in 
+                                            env.varEnv.[key] 
+                                        else failwithf "The variable %A is not in the environment %A." var env.varEnv
 
                         match capturedVars with
                         | v1 :: [] -> getVar v1
